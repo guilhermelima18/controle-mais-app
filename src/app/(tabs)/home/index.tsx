@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { Car, Plus, Smile, Utensils } from "lucide-react-native";
 import { FlatList, Text, TouchableOpacity, View } from "react-native";
 
@@ -6,6 +7,7 @@ import { Header } from "@/components/header";
 import { Layout } from "@/components/layout";
 
 import { theme } from "@/styles/theme";
+import { styles } from "./styles";
 
 const categorias = [
   {
@@ -42,22 +44,12 @@ export default function HomeScreen() {
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{
-          paddingBottom: 70,
-        }}
+        contentContainerStyle={styles.contentContainer}
         ListHeaderComponent={
           <>
             <Header title="Finanças" />
 
-            <View
-              style={{
-                width: "100%",
-                flexDirection: "column",
-                padding: 8,
-                marginTop: -170,
-                gap: 20,
-              }}
-            >
+            <View style={styles.summaryContainer}>
               <CardSummary
                 bgColor={theme.colors.blue[300]}
                 titleColor={theme.colors.white[500]}
@@ -67,8 +59,8 @@ export default function HomeScreen() {
                 hasBorder={false}
               />
 
-              <View style={{ width: "100%", flexDirection: "row", gap: 14 }}>
-                <View style={{ width: "48%" }}>
+              <View style={styles.row}>
+                <View style={styles.halfWidth}>
                   <CardSummary
                     bgColor={theme.colors.white[500]}
                     titleColor={theme.colors.gray[900]}
@@ -78,7 +70,7 @@ export default function HomeScreen() {
                   />
                 </View>
 
-                <View style={{ width: "48%" }}>
+                <View style={styles.halfWidth}>
                   <CardSummary
                     bgColor={theme.colors.white[500]}
                     titleColor={theme.colors.gray[900]}
@@ -90,12 +82,8 @@ export default function HomeScreen() {
               </View>
             </View>
 
-            <View style={{ marginTop: 20, padding: 4 }}>
-              <Text
-                style={{ fontSize: 22, fontWeight: "500", marginBottom: 12 }}
-              >
-                Gastos por categoria
-              </Text>
+            <View style={styles.categoryHeader}>
+              <Text style={styles.categoryTitle}>Gastos por categoria</Text>
             </View>
           </>
         }
@@ -103,51 +91,25 @@ export default function HomeScreen() {
           const Icon = item.icon;
           return (
             <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                backgroundColor: item.bgColor,
-                padding: 12,
-                borderRadius: 12,
-                margin: 6,
-              }}
+              style={[styles.itemContainer, { backgroundColor: item.bgColor }]}
             >
-              <View
-                style={{
-                  backgroundColor: "#FFF",
-                  padding: 8,
-                  borderRadius: 50,
-                  marginRight: 12,
-                }}
-              >
+              <View style={styles.iconWrapper}>
                 <Icon size={20} color={item.iconColor} />
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 16, fontWeight: "500" }}>
-                  {item.nome}
-                </Text>
+              <View style={styles.itemTextWrapper}>
+                <Text style={styles.itemTitle}>{item.nome}</Text>
               </View>
-              <Text style={{ fontWeight: "600" }}>{item.valor}</Text>
+              <Text style={styles.itemValue}>{item.valor}</Text>
             </View>
           );
         }}
       />
 
       <TouchableOpacity
-        style={{
-          backgroundColor: theme.colors.blue[700],
-          width: 80,
-          height: 80,
-          borderRadius: 999999,
-          alignItems: "center",
-          justifyContent: "center",
-          position: "absolute",
-          bottom: -20,
-          right: 10,
-          zIndex: 9999,
-        }}
+        style={styles.fab}
+        onPress={() => router.push("/new-transaction")}
       >
-        <Plus color={theme.colors.white[500]} />
+        <Plus size={28} color={theme.colors.white[500]} />
       </TouchableOpacity>
     </Layout>
   );
