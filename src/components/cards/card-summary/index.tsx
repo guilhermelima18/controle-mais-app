@@ -1,12 +1,15 @@
-import { theme } from "@/styles/theme";
 import { Text, View } from "react-native";
+
+import { formatCurrency } from "@/helpers/masks";
+
+import { theme } from "@/styles/theme";
 
 type CardSummaryProps = {
   bgColor: string;
   titleColor: string;
   valueColor: string;
   title: string;
-  value: string;
+  value: number;
   hasBorder?: boolean;
 };
 
@@ -38,7 +41,7 @@ export function CardSummary({
         {title}
       </Text>
       <Text style={{ fontSize: 28, color: valueColor, fontWeight: "500" }}>
-        {value}
+        {formatCurrency(Math.round(value * 100).toString())}
       </Text>
     </View>
   );

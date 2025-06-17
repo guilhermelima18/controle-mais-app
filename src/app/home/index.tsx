@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -7,7 +7,13 @@ import {
   View,
 } from "react-native";
 import { router } from "expo-router";
-import { Plus } from "lucide-react-native";
+import {
+  LucideIcon,
+  Plus,
+  ShoppingCart,
+  Smile,
+  Truck,
+} from "lucide-react-native";
 
 import { useTransactions } from "@/hooks/use-transactions";
 
@@ -20,9 +26,77 @@ import { formatCurrency } from "@/helpers/masks";
 import { theme } from "@/styles/theme";
 import { styles } from "./styles";
 
+const categoryIcons: Record<string, LucideIcon> = {
+  alimentacao: ShoppingCart,
+  transportes: Truck,
+  lazer: Smile,
+};
+
+const categoryColors: Record<string, string> = {
+  alimentacao: "#FF6B6B",
+  transportes: "#6BCB77",
+  lazer: "#FFD93D",
+};
+
 export default function Home() {
   const { transactions, transactionsLoading, getUserTransactions } =
     useTransactions();
+
+  const transactionsPerCategory = transactions.reduce((acc, item) => {
+    const key = item.category;
+    if (!acc[key]) {
+      acc[key] = [];
+    }
+    acc[key].push(item);
+    return acc;
+  }, {} as Record<string, typeof transactions>);
+
+  const data = Object.entries(transactionsPerCategory).map(
+    ([category, items]) => {
+      const total = items.reduce((sum, item) => sum + item.value, 0);
+      return {
+        category,
+        total,
+        items,
+      };
+    }
+  );
+
+  const totalTransactions = useMemo(() => {
+    return transactions.reduce((acc, item) => {
+      return (acc += item.value);
+    }, 0);
+  }, [transactions]);
+
+  const totalIncomingTransactions = useMemo(() => {
+    return transactions.reduce((acc, item) => {
+      if (
+        item.type
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase() === "entrada"
+      ) {
+        acc += item.value;
+      }
+
+      return acc;
+    }, 0);
+  }, [transactions]);
+
+  const totalOutgoingTransactions = useMemo(() => {
+    return transactions.reduce((acc, item) => {
+      if (
+        item.type
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase() === "saida"
+      ) {
+        acc += item.value;
+      }
+
+      return acc;
+    }, 0);
+  }, [transactions]);
 
   useEffect(() => {
     getUserTransactions();
@@ -42,8 +116,8 @@ export default function Home() {
         </View>
       ) : (
         <FlatList
-          data={transactions}
-          keyExtractor={(item) => item.id}
+          data={data}
+          keyExtractor={(item) => item.category}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.contentContainer}
@@ -57,7 +131,7 @@ export default function Home() {
                   titleColor={theme.colors.white[500]}
                   valueColor={theme.colors.white[500]}
                   title="Saldo atual"
-                  value="R$ 2.450,00"
+                  value={totalTransactions}
                   hasBorder={false}
                 />
 
@@ -68,7 +142,7 @@ export default function Home() {
                       titleColor={theme.colors.gray[900]}
                       valueColor={theme.colors.green[500]}
                       title="Entradas"
-                      value="R$ 3.000,00"
+                      value={totalIncomingTransactions}
                     />
                   </View>
 
@@ -78,7 +152,7 @@ export default function Home() {
                       titleColor={theme.colors.gray[900]}
                       valueColor={theme.colors.red[500]}
                       title="Saídas"
-                      value="R$ 55.550,00"
+                      value={totalOutgoingTransactions}
                     />
                   </View>
                 </View>
@@ -90,13 +164,37 @@ export default function Home() {
             </>
           }
           renderItem={({ item }) => {
+            const IconComponent =
+              categoryIcons[
+                item.category
+                  .normalize("NFD")
+                  .replace(/[\u0300-\u036f]/g, "")
+                  .toLowerCase()
+              ];
+            <IconComponent size={20} color="#333" style={{ marginRight: 8 }} />;
+
             return (
-              <View style={styles.itemContainer}>
-                <View style={styles.itemTextWrapper}>
-                  <Text style={styles.itemTitle}>{item.description}</Text>
+              <View
+                style={[
+                  styles.itemContainer,
+                  {
+                    backgroundColor:
+                      categoryColors[
+                        item.category
+                          .normalize("NFD")
+                          .replace(/[\u0300-\u036f]/g, "")
+                          .toLowerCase()
+                      ],
+                  },
+                ]}
+              >
+                <View style={{ flexDirection: "row" }}>
+                  <IconComponent size={20} style={{ marginRight: 8 }} />
+                  <Text style={styles.itemTitle}>{item.category}</Text>
                 </View>
+
                 <Text style={styles.itemValue}>
-                  {formatCurrency(Math.round(item?.value * 100).toString())}
+                  {formatCurrency(Math.round(item?.total * 100).toString())}
                 </Text>
               </View>
             );

@@ -1,6 +1,8 @@
 import { Dimensions, Text, TouchableOpacity, View } from "react-native";
 import { router } from "expo-router";
-import { ArrowLeft } from "lucide-react-native";
+import { ArrowLeft, LogOut } from "lucide-react-native";
+
+import { useStorage } from "@/hooks/use-storage";
 
 import { theme } from "@/styles/theme";
 
@@ -11,6 +13,8 @@ type HeaderProps = {
 export function Header({ title }: HeaderProps) {
   const windowHeight = Dimensions.get("window").height;
 
+  const { deleteStorage } = useStorage();
+
   return (
     <View
       style={{
@@ -19,7 +23,7 @@ export function Header({ title }: HeaderProps) {
         height: windowHeight - 600,
         padding: 20,
         flexDirection: "row",
-        alignItems: "flex-start",
+        justifyContent: "space-between",
         gap: 20,
       }}
     >
@@ -47,6 +51,23 @@ export function Header({ title }: HeaderProps) {
       >
         {title}
       </Text>
+
+      <TouchableOpacity
+        style={{
+          backgroundColor: theme.colors.blue[700],
+          width: 40,
+          height: 40,
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: 9999,
+        }}
+        onPress={async () => {
+          await deleteStorage();
+          router.push("/");
+        }}
+      >
+        <LogOut color={theme.colors.white[500]} />
+      </TouchableOpacity>
     </View>
   );
 }

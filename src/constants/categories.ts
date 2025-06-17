@@ -1,15 +1,20 @@
-export const categorias = [
+export const categories = [
   {
-    id: 1,
-    nome: "Alimentação",
+    label: "Alimentação",
+    value: "alimentacao",
   },
   {
-    id: 2,
-    nome: "Transporte",
-    iconColor: "#43A047",
+    label: "Transportes",
+    value: "transportes",
   },
   {
-    id: 3,
-    nome: "Lazer",
+    label: "Lazer",
+    value: "lazer",
   },
 ];
+
+export const categoriesMapped: Record<string, string> = {
+  alimentacao: "Alimentação",
+  transportes: "Transportes",
+  lazer: "Lazer",
+};

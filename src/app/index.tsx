@@ -27,10 +27,17 @@ export default function SignIn() {
   return (
     <Layout>
       <View style={styles.container}>
-        <Text style={styles.title}>Bem-vindo ao Controle Mais</Text>
-        <Text style={styles.subtitle}>
-          Gerencie suas finanças de forma simples e visual!
-        </Text>
+        <Image
+          source={require("../assets/icons/logo.png")}
+          style={{
+            width: 200,
+            height: 100,
+            resizeMode: "contain",
+          }}
+        />
+
+        <Text style={styles.subtitle}>Gerencie suas finanças de forma</Text>
+        <Text style={styles.subtitle}>simples e visual!</Text>
 
         {signInLoading ? (
           <View>
@@ -56,19 +63,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 24,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#2563EB",
-    marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     color: "#6B7280",
     textAlign: "center",
-    marginBottom: 40,
   },
   googleButton: {
     flexDirection: "row",
@@ -84,6 +83,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    marginTop: 20,
   },
   googleIcon: {
     width: 24,

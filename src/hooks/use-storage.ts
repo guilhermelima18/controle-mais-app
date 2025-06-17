@@ -47,8 +47,13 @@ export function useStorage() {
     []
   );
 
+  const deleteStorage = useCallback(async () => {
+    await AsyncStorage.removeItem("@controlemais:user");
+  }, []);
+
   return {
     getUserStorage,
     createUserStorage,
+    deleteStorage,
   };
 }

@@ -5,31 +5,35 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { format } from "date-fns";
 import firestore from "@react-native-firebase/firestore";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
+import { useStorage } from "@/hooks/use-storage";
 
 import { Header } from "@/components/header";
 import { Layout } from "@/components/layout";
 
 import { formatCurrency, onlyNumbers } from "@/helpers/masks";
 import { styles } from "./styles";
+import { categories, categoriesMapped } from "@/constants/categories";
+import { typesMapped } from "@/constants/types";
 
 export default function NewTransaction() {
   const [newTransactionForm, setNewTransactionForm] = useState({
     type: "entrada",
-    value: "",
+    value: "0",
     category: "",
     date: new Date(),
     description: "",
   });
   const [showDatePicker, setShowDatePicker] = useState(false);
 
+  const { getUserStorage } = useStorage();
+
   const saveTransaction = async () => {
-    let userLogged;
+    let userLoggedId;
+    const userLoggedStorage = await getUserStorage();
 
-    const userLoggedStorage = await AsyncStorage.getItem("@controlemais:user");
-
-    if (userLoggedStorage) {
-      userLogged = JSON.parse(userLoggedStorage);
+    if (userLoggedStorage && userLoggedStorage.id) {
+      userLoggedId = userLoggedStorage.id;
     }
 
     const valorFinal =
@@ -38,7 +42,9 @@ export default function NewTransaction() {
     try {
       const data = {
         ...newTransactionForm,
-        userId: userLogged.id,
+        userId: userLoggedId,
+        type: typesMapped[newTransactionForm.type],
+        category: categoriesMapped[newTransactionForm.category],
         value: valorFinal,
         date: firestore.Timestamp.fromDate(newTransactionForm.date),
         createdAt: firestore.FieldValue.serverTimestamp(),
@@ -56,7 +62,7 @@ export default function NewTransaction() {
       setNewTransactionForm({
         type: "entrada",
         value: "",
-        category: "",
+        category: "alimentacao",
         date: new Date(),
         description: "",
       });
@@ -129,18 +135,22 @@ export default function NewTransaction() {
           <View style={styles.pickerWrapper}>
             <Picker
               selectedValue={newTransactionForm.category}
-              onValueChange={(itemValue) =>
+              onValueChange={(itemValue) => {
                 setNewTransactionForm((prev) => {
                   return {
                     ...prev,
                     category: itemValue,
                   };
-                })
-              }
+                });
+              }}
             >
-              <Picker.Item label="Alimentação" value="alimentacao" />
-              <Picker.Item label="Transporte" value="transporte" />
-              <Picker.Item label="Lazer" value="lazer" />
+              {categories.map((category) => (
+                <Picker.Item
+                  key={category.value}
+                  label={category.label}
+                  value={category.value}
+                />
+              ))}
             </Picker>
           </View>
         </View>
@@ -159,7 +169,7 @@ export default function NewTransaction() {
           <DateTimePicker
             value={newTransactionForm.date}
             mode="date"
-            display="default"
+            display="calendar"
             onChange={(event, selectedDate) => {
               const currentDate = selectedDate || newTransactionForm.date;
               setShowDatePicker(false);
