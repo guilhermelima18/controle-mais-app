@@ -16,6 +16,8 @@ export const styles = StyleSheet.create({
   },
   itemTextWrapper: {
     flex: 1,
+    flexDirection: "row",
+    gap: 4,
   },
   itemTitle: {
     fontSize: 16,

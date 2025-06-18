@@ -1,6 +1,7 @@
 import { Dimensions, Text, TouchableOpacity, View } from "react-native";
 import { router } from "expo-router";
 import { ArrowLeft, LogOut } from "lucide-react-native";
+import auth from "@react-native-firebase/auth";
 
 import { useStorage } from "@/hooks/use-storage";
 
@@ -63,6 +64,8 @@ export function Header({ title }: HeaderProps) {
         }}
         onPress={async () => {
           await deleteStorage();
+          await auth().signOut();
+
           router.push("/");
         }}
       >

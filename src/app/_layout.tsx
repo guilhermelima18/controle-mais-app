@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
-import { Stack } from "expo-router";
+import { router, Stack } from "expo-router";
+import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
 import {
   Poppins_400Regular,
   Poppins_600SemiBold,
@@ -7,22 +9,41 @@ import {
   useFonts,
 } from "@expo-google-fonts/poppins";
 import "react-native-reanimated";
-import auth from "@react-native-firebase/auth";
 
 import { Contexts } from "@/contexts";
 
 import { theme } from "@/styles/theme";
 
 export default function RootLayout() {
-  const user = auth().currentUser;
+  const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const [loaded] = useFonts({
+  const [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_600SemiBold,
     Poppins_700Bold,
   });
 
-  if (!loaded) {
+  useEffect(() => {
+    const unsubscribe = auth().onAuthStateChanged((firebaseUser) => {
+      setUser(firebaseUser);
+      setLoading(false);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    setTimeout(() => {
+      if (user) {
+        router.replace("/home");
+      } else {
+        router.replace("/");
+      }
+    }, 500);
+  }, [user, loading]);
+
+  if (!fontsLoaded || loading) {
     return (
       <View
         style={{
@@ -38,18 +59,11 @@ export default function RootLayout() {
 
   return (
     <Contexts>
-      <Stack
-        screenOptions={{ headerShown: false }}
-        initialRouteName={user?.uid ? "home/index" : "index"}
-      >
+      <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="home/index" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" />
         <Stack.Screen
-          name="transactions/index"
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="transactions/new-transaction/index"
+          name="new-transaction/index"
           options={{ headerShown: false }}
         />
       </Stack>

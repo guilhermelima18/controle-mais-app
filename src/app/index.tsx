@@ -20,7 +20,7 @@ export default function SignIn() {
     const result = await handleGoogleSignIn();
 
     if (result && result.user.id) {
-      router.push("/home");
+      router.replace("/home");
     }
   };
 
@@ -40,7 +40,7 @@ export default function SignIn() {
         <Text style={styles.subtitle}>simples e visual!</Text>
 
         {signInLoading ? (
-          <View>
+          <View style={{ marginTop: 24 }}>
             <ActivityIndicator color={theme.colors.blue[700]} size="large" />
           </View>
         ) : (

@@ -23,7 +23,7 @@ export const styles = StyleSheet.create({
   },
   categoryHeader: {
     marginTop: 20,
-    padding: 4,
+    padding: 8,
   },
   categoryTitle: {
     fontSize: 22,
@@ -35,7 +35,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: 12,
+    padding: 24,
     borderRadius: 12,
     margin: 6,
   },
@@ -54,7 +54,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     position: "absolute",
-    bottom: 40,
+    bottom: 10,
     right: 10,
     zIndex: 9999,
   },
