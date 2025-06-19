@@ -53,10 +53,10 @@ export default function Feedbacks() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ flex: 1 }}
     >
-      <ScrollView contentContainerStyle={{ flex: 1 }}>
-        <Layout>
-          <Header title="Feedbacks" />
+      <Layout>
+        <Header title="Feedbacks" />
 
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
           <View
             style={{
               backgroundColor: "#fff",
@@ -137,8 +137,8 @@ export default function Feedbacks() {
               )}
             </View>
           </View>
-        </Layout>
-      </ScrollView>
+        </ScrollView>
+      </Layout>
     </KeyboardAvoidingView>
   );
 }

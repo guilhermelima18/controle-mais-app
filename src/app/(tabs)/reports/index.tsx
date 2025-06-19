@@ -1,5 +1,11 @@
-import { useEffect } from "react";
-import { ActivityIndicator, View, Text } from "react-native";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  View,
+  Text,
+  FlatList,
+  RefreshControl,
+} from "react-native";
 import { Pie, PolarChart } from "victory-native";
 import { useFont } from "@shopify/react-native-skia";
 import { Poppins_400Regular } from "@expo-google-fonts/poppins";
@@ -8,12 +14,13 @@ import { useTransactions } from "@/hooks/use-transactions";
 
 import { Layout } from "@/components/layout";
 import { Header } from "@/components/header";
-import { PieChartCustomLabel } from "@/components/chart/pie-chat-custom-label";
 
 import { categoryColors } from "@/constants/categories";
 import { theme } from "@/styles/theme";
 
 export default function Reports() {
+  const [refreshing, setRefreshing] = useState(false);
+
   const font = useFont(Poppins_400Regular, 12);
   const { transactions, transactionsLoading, getUserTransactions } =
     useTransactions();
@@ -49,6 +56,14 @@ export default function Reports() {
           .toLowerCase()
       ],
   }));
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+
+    await getUserTransactions();
+
+    setRefreshing(false);
+  };
 
   useEffect(() => {
     getUserTransactions();
@@ -100,30 +115,47 @@ export default function Reports() {
             </PolarChart>
           </View>
 
-          <View
-            style={{
-              flexDirection: "column",
+          <FlatList
+            data={graphicsData}
+            keyExtractor={(item) => item.label}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{
+              paddingBottom: 20,
               marginTop: 40,
-              padding: 10,
-              gap: 14,
             }}
-          >
-            {graphicsData.map((item) => (
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
-              >
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+            renderItem={({ item }) => {
+              return (
                 <View
                   style={{
-                    backgroundColor: item.color,
-                    width: 15,
-                    height: 15,
-                    borderRadius: 999,
+                    flexDirection: "column",
+                    padding: 10,
                   }}
-                />
-                <Text style={{ fontSize: 18 }}>{item.label}</Text>
-              </View>
-            ))}
-          </View>
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
+                  >
+                    <View
+                      style={{
+                        backgroundColor: item.color,
+                        width: 15,
+                        height: 15,
+                        borderRadius: 999,
+                      }}
+                    />
+                    <Text style={{ fontSize: 18 }}>{item.label}</Text>
+                  </View>
+                </View>
+              );
+            }}
+          />
         </>
       )}
     </Layout>
