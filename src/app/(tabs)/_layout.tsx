@@ -1,6 +1,5 @@
-// app/(tabs)/_layout.tsx
 import { Tabs } from "expo-router";
-import { Home, List, MessageCircleCode } from "lucide-react-native";
+import { Home, List, MessageCircleCode, PieChart } from "lucide-react-native";
 
 export default function TabLayout() {
   return (
@@ -22,6 +21,16 @@ export default function TabLayout() {
         options={{
           title: "Transações",
           tabBarIcon: ({ color, size }) => <List color={color} size={size} />,
+        }}
+      />
+
+      <Tabs.Screen
+        name="reports/index"
+        options={{
+          title: "Relatórios",
+          tabBarIcon: ({ color, size }) => (
+            <PieChart color={color} size={size} />
+          ),
         }}
       />
 

@@ -63,7 +63,7 @@ export default function Feedbacks() {
               flex: 1,
               borderTopRightRadius: 40,
               borderTopLeftRadius: 40,
-              marginTop: -100,
+              marginTop: 0,
             }}
           >
             <View style={{ padding: 24, flexDirection: "column", gap: 2 }}>

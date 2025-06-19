@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { Alert } from "react-native";
 import firestore from "@react-native-firebase/firestore";
 
 import { useStorage } from "./use-storage";
@@ -17,6 +18,26 @@ export type TransactionsProps = {
     seconds: number;
   };
   description: string;
+  hasCompleted: boolean;
+};
+
+export type CreateTransactionBody = {
+  userId: string;
+  type: string;
+  value: number;
+  category: string;
+  description: string;
+  hasCompleted: boolean;
+  date: any;
+  createdAt: any;
+};
+
+export type UpdateTransactionBody = {
+  type?: string;
+  value?: number;
+  category?: string;
+  description?: string;
+  hasCompleted?: boolean;
 };
 
 export function useTransactions() {
@@ -100,10 +121,61 @@ export function useTransactions() {
     []
   );
 
+  const createTransaction = useCallback(async (data: CreateTransactionBody) => {
+    try {
+      await firestore().collection("transactions").add(data);
+
+      Alert.alert("Sucesso", "Transação criada!");
+    } catch (error) {
+      console.error("Erro ao criar a transação:", error);
+    }
+  }, []);
+
+  const updateTransaction = useCallback(
+    async ({
+      transactionId,
+      data,
+    }: {
+      transactionId: string;
+      data: UpdateTransactionBody;
+    }) => {
+      try {
+        await firestore()
+          .collection("transactions")
+          .doc(transactionId)
+          .update(data);
+
+        Alert.alert("Sucesso", "Transação atualizada!");
+      } catch (error) {
+        console.error("Erro ao atualizar a transação:", error);
+      }
+    },
+    []
+  );
+
+  const deleteTransaction = useCallback(
+    async ({ transactionId }: { transactionId: string }) => {
+      try {
+        await firestore()
+          .collection("transactions")
+          .doc(transactionId)
+          .delete();
+
+        Alert.alert("Sucesso", "Transação excluída!");
+      } catch (error) {
+        console.error("Erro ao excluir a transação:", error);
+      }
+    },
+    []
+  );
+
   return {
     transactions,
     transactionsLoading,
     getUserTransactions,
     getUserTransactionsByMonth,
+    createTransaction,
+    updateTransaction,
+    deleteTransaction,
   };
 }

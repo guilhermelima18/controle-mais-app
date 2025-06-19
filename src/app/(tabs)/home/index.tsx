@@ -1,29 +1,14 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
   Text,
   TouchableOpacity,
   View,
+  RefreshControl,
 } from "react-native";
 import { router } from "expo-router";
-import {
-  Book,
-  HeartPulse,
-  LucideIcon,
-  Plus,
-  ShoppingCart,
-  Smile,
-  Truck,
-  Home as HomeIcon,
-  Shirt,
-  Briefcase,
-  LineChart,
-  CircleHelp,
-} from "lucide-react-native";
+import { Plus } from "lucide-react-native";
 
 import { useTransactions } from "@/hooks/use-transactions";
 
@@ -33,25 +18,14 @@ import { Layout } from "@/components/layout";
 import { CardEmpty } from "@/components/cards/card-empty";
 
 import { formatCurrency } from "@/helpers/masks";
+import { categoryIcons } from "@/helpers/functions/categories-icons";
 import { categoryColors } from "@/constants/categories";
 
 import { theme } from "@/styles/theme";
-import { styles } from "./styles";
-
-export const categoryIcons: Record<string, LucideIcon> = {
-  alimentacao: ShoppingCart,
-  transportes: Truck,
-  lazer: Smile,
-  saude: HeartPulse,
-  educacao: Book,
-  moradia: HomeIcon,
-  compras: Shirt,
-  trabalho: Briefcase,
-  investimentos: LineChart,
-  outros: CircleHelp,
-};
 
 export default function Home() {
+  const [refreshing, setRefreshing] = useState(false);
+
   const { transactions, transactionsLoading, getUserTransactions } =
     useTransactions();
 
@@ -111,140 +85,203 @@ export default function Home() {
     }, 0);
   }, [transactions]);
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+
+    await getUserTransactions();
+
+    setRefreshing(false);
+  };
+
   useEffect(() => {
     getUserTransactions();
   }, []);
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1 }}
-    >
-      <ScrollView contentContainerStyle={{ flex: 1 }}>
-        <Layout>
-          {transactionsLoading ? (
+    <Layout>
+      {transactionsLoading ? (
+        <View
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <ActivityIndicator color={theme.colors.blue[700]} size="large" />
+        </View>
+      ) : (
+        <>
+          <Header title="Resumo" />
+
+          <View
+            style={{
+              width: "100%",
+              flexDirection: "column",
+              padding: 8,
+              marginTop: 0,
+              gap: 20,
+            }}
+          >
+            <CardSummary
+              bgColor={theme.colors.blue[300]}
+              titleColor={theme.colors.white[500]}
+              valueColor={theme.colors.white[500]}
+              title="Saldo atual"
+              value={totalTransactions}
+              hasBorder={false}
+            />
+
             <View
               style={{
-                flex: 1,
-                alignItems: "center",
-                justifyContent: "center",
+                width: "100%",
+                flexDirection: "row",
+                gap: 14,
               }}
             >
-              <ActivityIndicator color={theme.colors.blue[700]} size="large" />
-            </View>
-          ) : (
-            <>
-              <Header title="Resumo" />
-
-              <View style={styles.summaryContainer}>
+              <View
+                style={{
+                  width: "48%",
+                }}
+              >
                 <CardSummary
-                  bgColor={theme.colors.blue[300]}
-                  titleColor={theme.colors.white[500]}
-                  valueColor={theme.colors.white[500]}
-                  title="Saldo atual"
-                  value={totalTransactions}
-                  hasBorder={false}
+                  bgColor={theme.colors.white[500]}
+                  titleColor={theme.colors.gray[900]}
+                  valueColor={theme.colors.green[500]}
+                  title="Entradas"
+                  value={totalIncomingTransactions}
                 />
-
-                <View style={styles.row}>
-                  <View style={styles.halfWidth}>
-                    <CardSummary
-                      bgColor={theme.colors.white[500]}
-                      titleColor={theme.colors.gray[900]}
-                      valueColor={theme.colors.green[500]}
-                      title="Entradas"
-                      value={totalIncomingTransactions}
-                    />
-                  </View>
-
-                  <View style={styles.halfWidth}>
-                    <CardSummary
-                      bgColor={theme.colors.white[500]}
-                      titleColor={theme.colors.gray[900]}
-                      valueColor={theme.colors.red[500]}
-                      title="Saídas"
-                      value={totalOutgoingTransactions}
-                    />
-                  </View>
-                </View>
               </View>
 
-              {data && data?.length > 0 && (
-                <View style={styles.categoryHeader}>
-                  <Text style={styles.categoryTitle}>Gastos por categoria</Text>
-                </View>
-              )}
-
-              {data && data?.length > 0 ? (
-                <FlatList
-                  data={data}
-                  keyExtractor={(item) => item.category}
-                  showsVerticalScrollIndicator={false}
-                  keyboardShouldPersistTaps="handled"
-                  contentContainerStyle={styles.contentContainer}
-                  renderItem={(transactions) => {
-                    const IconComponent =
-                      categoryIcons[
-                        transactions.item.category
-                          .normalize("NFD")
-                          .replace(/[\u0300-\u036f]/g, "")
-                          .toLowerCase()
-                      ];
-                    <IconComponent
-                      size={24}
-                      color="#333"
-                      style={{ marginRight: 8 }}
-                    />;
-
-                    return (
-                      <View
-                        style={[
-                          styles.itemContainer,
-                          {
-                            backgroundColor:
-                              categoryColors[
-                                transactions.item.category
-                                  .normalize("NFD")
-                                  .replace(/[\u0300-\u036f]/g, "")
-                                  .toLowerCase()
-                              ],
-                          },
-                        ]}
-                      >
-                        <View style={{ flexDirection: "row" }}>
-                          <IconComponent size={20} style={{ marginRight: 8 }} />
-                          <Text style={styles.itemTitle}>
-                            {transactions.item.category}
-                          </Text>
-                        </View>
-
-                        <Text style={styles.itemValue}>
-                          {formatCurrency(
-                            Math.round(
-                              transactions.item?.total * 100
-                            ).toString()
-                          )}
-                        </Text>
-                      </View>
-                    );
-                  }}
+              <View
+                style={{
+                  width: "48%",
+                }}
+              >
+                <CardSummary
+                  bgColor={theme.colors.white[500]}
+                  titleColor={theme.colors.gray[900]}
+                  valueColor={theme.colors.red[500]}
+                  title="Saídas"
+                  value={totalOutgoingTransactions}
                 />
-              ) : (
-                <View style={{ flex: 1 }}>
-                  <CardEmpty text="Nenhuma categoria encontrada." />
-                </View>
-              )}
-            </>
+              </View>
+            </View>
+          </View>
+
+          {data && data?.length > 0 && (
+            <View
+              style={{
+                marginTop: 20,
+                padding: 8,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 22,
+                  fontWeight: "500",
+                  marginBottom: 12,
+                }}
+              >
+                Gastos por categoria
+              </Text>
+            </View>
           )}
 
-          <TouchableOpacity
-            style={styles.fab}
-            onPress={() => router.push("/new-transaction")}
-          >
-            <Plus size={28} color={theme.colors.white[500]} />
-          </TouchableOpacity>
-        </Layout>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          {data && data?.length > 0 ? (
+            <FlatList
+              data={data}
+              keyExtractor={(item) => item.category}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={{
+                paddingBottom: 70,
+              }}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              }
+              renderItem={(transactions) => {
+                const IconComponent =
+                  categoryIcons[
+                    transactions.item.category
+                      .normalize("NFD")
+                      .replace(/[\u0300-\u036f]/g, "")
+                      .toLowerCase()
+                  ];
+
+                return (
+                  <View
+                    style={{
+                      backgroundColor:
+                        categoryColors[
+                          transactions.item.category
+                            .normalize("NFD")
+                            .replace(/[\u0300-\u036f]/g, "")
+                            .toLowerCase()
+                        ],
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: 24,
+                      borderRadius: 12,
+                      margin: 6,
+                    }}
+                  >
+                    <View style={{ flexDirection: "row" }}>
+                      <IconComponent
+                        size={20}
+                        color={theme.colors.white[500]}
+                        style={{ marginRight: 8 }}
+                      />
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          fontWeight: "500",
+                          color: theme.colors.white[500],
+                        }}
+                      >
+                        {transactions.item.category}
+                      </Text>
+                    </View>
+
+                    <Text
+                      style={{
+                        fontWeight: "600",
+                        color: theme.colors.white[500],
+                      }}
+                    >
+                      {formatCurrency(
+                        Math.round(transactions.item?.total * 100).toString()
+                      )}
+                    </Text>
+                  </View>
+                );
+              }}
+            />
+          ) : (
+            <View style={{ flex: 1 }}>
+              <CardEmpty text="Nenhuma categoria encontrada." />
+            </View>
+          )}
+        </>
+      )}
+
+      <TouchableOpacity
+        style={{
+          backgroundColor: theme.colors.blue[700],
+          width: 60,
+          height: 60,
+          borderRadius: 999999,
+          alignItems: "center",
+          justifyContent: "center",
+          position: "absolute",
+          bottom: 10,
+          right: 10,
+          zIndex: 9999,
+        }}
+        onPress={() => router.push("/new-transaction")}
+      >
+        <Plus size={28} color={theme.colors.white[500]} />
+      </TouchableOpacity>
+    </Layout>
   );
 }

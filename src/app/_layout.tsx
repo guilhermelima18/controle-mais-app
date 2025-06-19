@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, View, LogBox } from "react-native";
 import { router, Stack } from "expo-router";
 import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
 import {
@@ -13,6 +13,8 @@ import "react-native-reanimated";
 import { Contexts } from "@/contexts";
 
 import { theme } from "@/styles/theme";
+
+LogBox.ignoreAllLogs();
 
 export default function RootLayout() {
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);

@@ -1,32 +1,34 @@
 import { useState } from "react";
 import { Alert, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { router } from "expo-router";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { format } from "date-fns";
 import firestore from "@react-native-firebase/firestore";
 
 import { useStorage } from "@/hooks/use-storage";
+import { useTransactions } from "@/hooks/use-transactions";
 
 import { Header } from "@/components/header";
 import { Layout } from "@/components/layout";
 
-import { formatCurrency, onlyNumbers } from "@/helpers/masks";
-import { styles } from "./styles";
 import { categories, categoriesMapped } from "@/constants/categories";
 import { typesMapped } from "@/constants/types";
+import { formatCurrency, onlyNumbers } from "@/helpers/masks";
+
+import { theme } from "@/styles/theme";
 
 export default function NewTransaction() {
   const [newTransactionForm, setNewTransactionForm] = useState({
     type: "entrada",
     value: "0",
-    category: "",
+    category: "alimentacao",
     date: new Date(),
     description: "",
   });
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const { getUserStorage } = useStorage();
+  const { createTransaction } = useTransactions();
 
   const saveTransaction = async () => {
     let userLoggedId;
@@ -42,22 +44,16 @@ export default function NewTransaction() {
     try {
       const data = {
         ...newTransactionForm,
-        userId: userLoggedId,
+        userId: userLoggedId as string,
         type: typesMapped[newTransactionForm.type],
         category: categoriesMapped[newTransactionForm.category],
         value: valorFinal,
         date: firestore.Timestamp.fromDate(newTransactionForm.date),
         createdAt: firestore.FieldValue.serverTimestamp(),
+        hasCompleted: false,
       };
 
-      await firestore().collection("transactions").add(data);
-
-      Alert.alert("Sucesso", "Transação salva com sucesso.", [
-        {
-          text: "OK",
-          onPress: () => router.push("/home"),
-        },
-      ]);
+      await createTransaction(data);
 
       setNewTransactionForm({
         type: "entrada",
@@ -76,12 +72,37 @@ export default function NewTransaction() {
     <Layout>
       <Header title="Adicionar transação" />
 
-      <View style={styles.container}>
-        <View style={styles.radioGroup}>
+      <View
+        style={{
+          flex: 1,
+          padding: 24,
+          backgroundColor: "#fff",
+          marginTop: 0,
+          borderTopRightRadius: 40,
+          borderTopLeftRadius: 40,
+        }}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            marginBottom: 16,
+          }}
+        >
           <TouchableOpacity
             style={[
-              styles.radio,
-              newTransactionForm.type === "entrada" && styles.radioSelected,
+              {
+                flex: 1,
+                padding: 12,
+                marginRight: 8,
+                borderWidth: 1,
+                borderColor: "#ccc",
+                borderRadius: 8,
+                alignItems: "center",
+              },
+              newTransactionForm.type === "entrada" && {
+                backgroundColor: "#e0e7ff",
+                borderColor: "#3b82f6",
+              },
             ]}
             onPress={() =>
               setNewTransactionForm((prev) => {
@@ -92,12 +113,29 @@ export default function NewTransaction() {
               })
             }
           >
-            <Text style={styles.radioText}>Entrada</Text>
+            <Text
+              style={{
+                fontWeight: "500",
+              }}
+            >
+              Entrada
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[
-              styles.radio,
-              newTransactionForm.type === "saida" && styles.radioSelected,
+              {
+                flex: 1,
+                padding: 12,
+                marginRight: 8,
+                borderWidth: 1,
+                borderColor: "#ccc",
+                borderRadius: 8,
+                alignItems: "center",
+              },
+              newTransactionForm.type === "saida" && {
+                backgroundColor: "#e0e7ff",
+                borderColor: "#3b82f6",
+              },
             ]}
             onPress={() =>
               setNewTransactionForm((prev) => {
@@ -108,14 +146,39 @@ export default function NewTransaction() {
               })
             }
           >
-            <Text style={styles.radioText}>Saída</Text>
+            <Text
+              style={{
+                fontWeight: "500",
+              }}
+            >
+              Saída
+            </Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.boxValue}>
-          <Text style={styles.title}>Valor</Text>
+        <View
+          style={{
+            flexDirection: "column",
+            gap: 2,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 18,
+              fontWeight: "600",
+            }}
+          >
+            Valor
+          </Text>
+
           <TextInput
-            style={styles.input}
+            style={{
+              borderWidth: 1,
+              borderColor: "#ccc",
+              borderRadius: 8,
+              padding: 12,
+              marginBottom: 16,
+            }}
             placeholder="R$"
             keyboardType="numeric"
             value={formatCurrency(newTransactionForm.value)}
@@ -130,9 +193,28 @@ export default function NewTransaction() {
           />
         </View>
 
-        <View style={styles.boxValue}>
-          <Text style={styles.title}>Categoria</Text>
-          <View style={styles.pickerWrapper}>
+        <View
+          style={{
+            flexDirection: "column",
+            gap: 2,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 18,
+              fontWeight: "600",
+            }}
+          >
+            Categoria
+          </Text>
+          <View
+            style={{
+              borderWidth: 1,
+              borderColor: "#ccc",
+              borderRadius: 8,
+              marginBottom: 16,
+            }}
+          >
             <Picker
               selectedValue={newTransactionForm.category}
               onValueChange={(itemValue) => {
@@ -155,11 +237,29 @@ export default function NewTransaction() {
           </View>
         </View>
 
-        <View style={styles.boxValue}>
-          <Text style={styles.title}>Data</Text>
+        <View
+          style={{
+            flexDirection: "column",
+            gap: 2,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 18,
+              fontWeight: "600",
+            }}
+          >
+            Data
+          </Text>
           <TouchableOpacity
             onPress={() => setShowDatePicker(true)}
-            style={styles.input}
+            style={{
+              borderWidth: 1,
+              borderColor: "#ccc",
+              borderRadius: 8,
+              padding: 12,
+              marginBottom: 16,
+            }}
           >
             <Text>{format(newTransactionForm.date, "dd/MM/yyyy")}</Text>
           </TouchableOpacity>
@@ -184,11 +284,30 @@ export default function NewTransaction() {
           />
         )}
 
-        <View style={styles.boxValue}>
-          <Text style={styles.title}>Descrição</Text>
+        <View
+          style={{
+            flexDirection: "column",
+            gap: 2,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 18,
+              fontWeight: "600",
+            }}
+          >
+            Descrição
+          </Text>
 
           <TextInput
-            style={[styles.input, { height: 80 }]}
+            style={{
+              height: 80,
+              borderWidth: 1,
+              borderColor: "#ccc",
+              borderRadius: 8,
+              padding: 12,
+              marginBottom: 16,
+            }}
             placeholder="Descrição"
             value={newTransactionForm.description}
             onChangeText={(text) =>
@@ -203,8 +322,24 @@ export default function NewTransaction() {
           />
         </View>
 
-        <TouchableOpacity style={styles.button} onPress={saveTransaction}>
-          <Text style={styles.buttonText}>Salvar</Text>
+        <TouchableOpacity
+          style={{
+            backgroundColor: theme.colors.blue[700],
+            padding: 16,
+            borderRadius: 8,
+            alignItems: "center",
+            marginTop: 8,
+          }}
+          onPress={saveTransaction}
+        >
+          <Text
+            style={{
+              color: theme.colors.white[500],
+              fontWeight: "600",
+            }}
+          >
+            Salvar
+          </Text>
         </TouchableOpacity>
       </View>
     </Layout>

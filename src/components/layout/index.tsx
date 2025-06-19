@@ -9,7 +9,7 @@ type LayoutProps = {
 export function Layout({ children }: LayoutProps) {
   return (
     <SafeAreaView
-      style={{ flex: 1, backgroundColor: "#fff" }}
+      style={{ flex: 1, backgroundColor: "#f5f2f2" }}
       edges={["top", "bottom"]}
     >
       <View style={styles.container}>{children}</View>

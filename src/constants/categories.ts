@@ -56,13 +56,13 @@ export const categoriesMapped: Record<string, string> = {
 
 export const categoryColors: Record<string, string> = {
   alimentacao: "#FF6B6B", // vermelho
-  transportes: "#6BCB77", // verde
+  transportes: "#29873d", // verde
   lazer: "#FFD93D", // amarelo
   saude: "#4D96FF", // azul
   educacao: "#9D4EDD", // roxo
   moradia: "#FF9F1C", // laranja
   compras: "#F15BB5", // rosa
   trabalho: "#00BBF9", // azul claro
-  investimentos: "#00C49A", // verde esmeralda
+  investimentos: "#4ba65d", // verde esmeralda
   outros: "#A0AEC0", // cinza
 };

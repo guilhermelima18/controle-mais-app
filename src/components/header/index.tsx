@@ -21,9 +21,10 @@ export function Header({ title }: HeaderProps) {
       style={{
         backgroundColor: theme.colors.blue[700],
         width: "100%",
-        height: windowHeight - 600,
+        height: 80,
         padding: 20,
         flexDirection: "row",
+        alignItems: "center",
         justifyContent: "space-between",
         gap: 20,
       }}
