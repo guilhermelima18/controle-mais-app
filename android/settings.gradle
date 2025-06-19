@@ -44,7 +44,7 @@ if (getRNMinorVersion() >= 75) {
   }
 }
 
-rootProject.name = 'controle-mais-app'
+rootProject.name = 'Controle Mais'
 
 dependencyResolutionManagement {
   versionCatalogs {
