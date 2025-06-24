@@ -12,6 +12,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CheckCircle, Trash } from "lucide-react-native";
 
+import { useStorage } from "@/hooks/use-storage";
 import { useTransactions } from "@/hooks/use-transactions";
 
 import { Header } from "@/components/header";
@@ -30,6 +31,7 @@ export default function Transactions() {
 
   const currentYear = new Date().getFullYear();
 
+  const { getUserStorage } = useStorage();
   const {
     transactions,
     transactionsLoading,
@@ -39,8 +41,16 @@ export default function Transactions() {
   } = useTransactions();
 
   const handleUpdateTransaction = async (transactionId: string) => {
+    let userLoggedId;
+    const userLoggedStorage = await getUserStorage();
+
+    if (userLoggedStorage && userLoggedStorage.id) {
+      userLoggedId = userLoggedStorage.id;
+    }
+
     await updateTransaction({
       transactionId,
+      userId: userLoggedId as string,
       data: {
         hasCompleted: true,
       },
@@ -53,8 +63,16 @@ export default function Transactions() {
   };
 
   const handleDeleteTransaction = async (transactionId: string) => {
+    let userLoggedId;
+    const userLoggedStorage = await getUserStorage();
+
+    if (userLoggedStorage && userLoggedStorage.id) {
+      userLoggedId = userLoggedStorage.id;
+    }
+
     await deleteTransaction({
       transactionId,
+      userId: userLoggedId as string,
     });
 
     await getUserTransactionsByMonth({
@@ -174,7 +192,9 @@ export default function Transactions() {
                       <View
                         key={item.id}
                         style={{
-                          backgroundColor: theme.colors.white[500],
+                          backgroundColor: item.hasCompleted
+                            ? theme.colors.green[500]
+                            : theme.colors.white[500],
                           flexDirection: "row",
                           alignItems: "center",
                           padding: 12,
@@ -195,7 +215,9 @@ export default function Transactions() {
                             style={{
                               fontSize: 16,
                               fontWeight: "500",
-                              color: theme.colors.gray[900],
+                              color: item.hasCompleted
+                                ? theme.colors.white[500]
+                                : theme.colors.gray[900],
                             }}
                           >
                             {formattedDate}
@@ -210,14 +232,20 @@ export default function Transactions() {
                           >
                             <IconComponent
                               size={20}
-                              color={theme.colors.gray[900]}
+                              color={
+                                item.hasCompleted
+                                  ? theme.colors.white[500]
+                                  : theme.colors.gray[900]
+                              }
                               style={{ marginRight: 8 }}
                             />
                             <Text
                               style={{
                                 fontSize: 16,
                                 fontWeight: "500",
-                                color: theme.colors.gray[900],
+                                color: item.hasCompleted
+                                  ? theme.colors.white[500]
+                                  : theme.colors.gray[900],
                               }}
                             >
                               {item.description}
@@ -251,31 +279,42 @@ export default function Transactions() {
                             gap: 14,
                           }}
                         >
-                          <Pressable
-                            style={{
-                              borderWidth: 1,
-                              borderColor: theme.colors.green[500],
-                              padding: 12,
-                              borderRadius: 8,
-                            }}
-                            onPress={() => handleUpdateTransaction(item.id)}
-                          >
-                            <CheckCircle
-                              color={theme.colors.green[500]}
-                              size={22}
-                            />
-                          </Pressable>
+                          {!item.hasCompleted && (
+                            <Pressable
+                              style={{
+                                borderWidth: 1,
+                                borderColor: theme.colors.green[500],
+                                padding: 12,
+                                borderRadius: 8,
+                              }}
+                              onPress={() => handleUpdateTransaction(item.id)}
+                            >
+                              <CheckCircle
+                                color={theme.colors.green[500]}
+                                size={22}
+                              />
+                            </Pressable>
+                          )}
 
                           <Pressable
                             style={{
                               borderWidth: 1,
-                              borderColor: theme.colors.red[500],
+                              borderColor: item.hasCompleted
+                                ? theme.colors.white[500]
+                                : theme.colors.red[500],
                               padding: 12,
                               borderRadius: 8,
                             }}
                             onPress={() => handleDeleteTransaction(item.id)}
                           >
-                            <Trash color={theme.colors.red[500]} size={22} />
+                            <Trash
+                              color={
+                                item.hasCompleted
+                                  ? theme.colors.white[500]
+                                  : theme.colors.red[500]
+                              }
+                              size={22}
+                            />
                           </Pressable>
                         </View>
                       </View>

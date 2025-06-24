@@ -6,6 +6,7 @@ import {
   signInWithCredential,
 } from "@react-native-firebase/auth";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import firestore from "@react-native-firebase/firestore";
 
 import { useStorage } from "@/hooks/use-storage";
 
@@ -62,6 +63,7 @@ export function UserProvider({ children }: UserProviderProps) {
           providerId: userCredential.user.providerId,
         };
 
+        await firestore().collection("users").doc(userObj.id).set(userObj);
         await createUserStorage(userObj);
 
         return {

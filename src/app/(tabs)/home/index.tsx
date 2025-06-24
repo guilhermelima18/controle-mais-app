@@ -278,7 +278,7 @@ export default function Home() {
           right: 10,
           zIndex: 9999,
         }}
-        onPress={() => router.push("/new-transaction")}
+        onPress={() => router.push("/transactions/new-transaction")}
       >
         <Plus size={28} color={theme.colors.white[500]} />
       </TouchableOpacity>

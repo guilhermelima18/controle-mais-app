@@ -1,5 +1,11 @@
 import { Tabs } from "expo-router";
-import { Home, List, MessageCircleCode, PieChart } from "lucide-react-native";
+import {
+  HandCoins,
+  Home,
+  List,
+  MessageCircleCode,
+  PieChart,
+} from "lucide-react-native";
 
 export default function TabLayout() {
   return (
@@ -21,6 +27,34 @@ export default function TabLayout() {
         options={{
           title: "Transações",
           tabBarIcon: ({ color, size }) => <List color={color} size={size} />,
+        }}
+      />
+
+      <Tabs.Screen
+        name="transactions/new-transaction/index"
+        options={{
+          title: "",
+          href: null,
+          tabBarIcon: () => null,
+        }}
+      />
+
+      <Tabs.Screen
+        name="assets/index"
+        options={{
+          title: "Ativos",
+          tabBarIcon: ({ color, size }) => (
+            <HandCoins color={color} size={size} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="assets/new-asset/index"
+        options={{
+          title: "",
+          href: null,
+          tabBarIcon: () => null,
         }}
       />
 

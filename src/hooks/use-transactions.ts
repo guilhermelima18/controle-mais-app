@@ -58,8 +58,9 @@ export function useTransactions() {
       }
 
       const transactions = await firestore()
+        .collection("users")
+        .doc(userLoggedId)
         .collection("transactions")
-        .where("userId", "==", userLoggedId)
         .get();
 
       const transactionsMapped = transactions.docs.map((doc) => ({
@@ -97,8 +98,9 @@ export function useTransactions() {
         }
 
         const transactions = await firestore()
+          .collection("users")
+          .doc(userLoggedId)
           .collection("transactions")
-          .where("userId", "==", userLoggedId)
           .where("date", ">=", start)
           .where("date", "<", end)
           .get();
@@ -123,7 +125,11 @@ export function useTransactions() {
 
   const createTransaction = useCallback(async (data: CreateTransactionBody) => {
     try {
-      await firestore().collection("transactions").add(data);
+      await firestore()
+        .collection("users")
+        .doc(data.userId)
+        .collection("transactions")
+        .add(data);
 
       Alert.alert("Sucesso", "Transação criada!");
     } catch (error) {
@@ -134,13 +140,17 @@ export function useTransactions() {
   const updateTransaction = useCallback(
     async ({
       transactionId,
+      userId,
       data,
     }: {
       transactionId: string;
+      userId: string;
       data: UpdateTransactionBody;
     }) => {
       try {
         await firestore()
+          .collection("users")
+          .doc(userId)
           .collection("transactions")
           .doc(transactionId)
           .update(data);
@@ -154,9 +164,17 @@ export function useTransactions() {
   );
 
   const deleteTransaction = useCallback(
-    async ({ transactionId }: { transactionId: string }) => {
+    async ({
+      transactionId,
+      userId,
+    }: {
+      transactionId: string;
+      userId: string;
+    }) => {
       try {
         await firestore()
+          .collection("users")
+          .doc(userId)
           .collection("transactions")
           .doc(transactionId)
           .delete();
