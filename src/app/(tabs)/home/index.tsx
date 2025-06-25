@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -7,7 +7,7 @@ import {
   View,
   RefreshControl,
 } from "react-native";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { Plus } from "lucide-react-native";
 
 import { useTransactions } from "@/hooks/use-transactions";
@@ -48,6 +48,11 @@ export default function Home() {
       };
     }
   );
+
+  console.log({
+    transactions,
+    data,
+  });
 
   const totalTransactions = useMemo(() => {
     return transactions.reduce((acc, item) => {
@@ -93,9 +98,11 @@ export default function Home() {
     setRefreshing(false);
   };
 
-  useEffect(() => {
-    getUserTransactions();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      getUserTransactions();
+    }, [])
+  );
 
   return (
     <Layout>

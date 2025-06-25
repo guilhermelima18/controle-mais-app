@@ -1,10 +1,14 @@
 export const FeedbacksTypes = [
   {
-    label: "Error",
+    label: "Erros",
     value: "Error",
   },
   {
-    label: "Sugestions",
-    value: "Sugestions",
+    label: "Sugestões",
+    value: "Sugestion",
+  },
+  {
+    label: "Melhoria",
+    value: "Improvement",
   },
 ];

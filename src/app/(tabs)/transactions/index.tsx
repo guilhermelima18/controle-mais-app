@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -7,6 +7,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useFocusEffect } from "expo-router";
 import { Picker } from "@react-native-picker/picker";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -92,12 +93,14 @@ export default function Transactions() {
     setRefreshing(false);
   };
 
-  useEffect(() => {
-    getUserTransactionsByMonth({
-      selectedMonth: periodSelected,
-      year: currentYear,
-    });
-  }, [periodSelected]);
+  useFocusEffect(
+    useCallback(() => {
+      getUserTransactionsByMonth({
+        selectedMonth: periodSelected,
+        year: currentYear,
+      });
+    }, [periodSelected])
+  );
 
   return (
     <Layout>

@@ -19,21 +19,27 @@ import firestore from "@react-native-firebase/firestore";
 import { Trash } from "lucide-react-native";
 import { Picker } from "@react-native-picker/picker";
 
-import { useFeedbacks } from "@/hooks/use-feedbacks";
+import { FeedbacksType, useFeedbacks } from "@/hooks/use-feedbacks";
 
 import { Header } from "@/components/header";
 import { Layout } from "@/components/layout";
 
-import { theme } from "@/styles/theme";
 import { FeedbacksTypes } from "@/constants/feedbacks-types";
+import { theme } from "@/styles/theme";
+import { router } from "expo-router";
 
 export default function Feedbacks() {
   const [feedback, setFeedback] = useState({
     title: "",
     description: "",
-    type: "Sugestions",
+    type: "Sugestion",
   });
-  const [image, setImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
+  const [imageURI, setImageURI] = useState<ImagePicker.ImagePickerAsset | null>(
+    null
+  );
+  const [uploadImageBucketURL, setUploadImageBucketURL] = useState<
+    string | null
+  >(null);
   const [saveImageBucketLoading, setSaveImageBucketLoading] = useState(false);
 
   const {
@@ -63,71 +69,87 @@ export default function Feedbacks() {
 
     if (!result.canceled) {
       const image = result.assets[0];
-      console.log("Imagem selecionada:", image);
-      setImage(image);
+      setImageURI(image);
+
+      await handleSaveImageFirebaseBucket(image);
     }
   }
 
-  const handleSaveImageFirebaseBucket = useCallback(async () => {
+  const handleSaveImageFirebaseBucket = useCallback(
+    async (image: ImagePicker.ImagePickerAsset) => {
+      try {
+        setSaveImageBucketLoading(true);
+
+        const user = auth().currentUser;
+
+        if (!image?.uri || !user) return;
+
+        const fileExt = image.uri.split(".").pop();
+        const fileName = `image_${Date.now()}.${fileExt}`;
+
+        const fileRef = storage().ref(`users/${user.uid}/${fileName}`);
+
+        const fileUri = image.uri.startsWith("file://")
+          ? image.uri
+          : `file://${image.uri}`;
+        const task = fileRef.putFile(fileUri);
+
+        task.on("state_changed", (taskSnapshot) => {
+          console.log(
+            `Progresso: ${taskSnapshot.bytesTransferred} transferidos de ${taskSnapshot.totalBytes}`
+          );
+        });
+
+        await task;
+        const downloadURL = await fileRef.getDownloadURL();
+
+        setUploadImageBucketURL(downloadURL);
+      } catch (error) {
+        console.error("Erro no upload:", error);
+      } finally {
+        setSaveImageBucketLoading(false);
+      }
+    },
+    []
+  );
+
+  const handleSaveFeedback = async () => {
     try {
-      setSaveImageBucketLoading(true);
-
-      const user = auth().currentUser;
-
-      if (!image || !user) return;
-
-      // 2. Caminho no Storage (você pode personalizar)
-      const fileName = image.fileName || `image_${Date.now()}`;
-      const fileRef = storage().ref(`users/${user.uid}/${fileName}`);
-
-      // 3. Faz o upload do arquivo usando o caminho local (URI)
-      const task = fileRef.putFile(image.uri);
-
-      // 4. Monitorar progresso (opcional)
-      task.on("state_changed", (taskSnapshot) => {
-        console.log(
-          `Progresso: ${taskSnapshot.bytesTransferred} transferidos de ${taskSnapshot.totalBytes}`
-        );
-      });
-
-      // 5. Espera o upload finalizar
-      await task;
-      const downloadURL = await fileRef.getDownloadURL();
-
-      return downloadURL;
-    } catch (error) {
-      console.error("Erro no upload:", error);
-    } finally {
-      setSaveImageBucketLoading(false);
-    }
-  }, []);
-
-  const handleSaveFeedback = useCallback(async () => {
-    try {
-      const uploadImageBucket = await handleSaveImageFirebaseBucket();
-      console.log({ uploadImageBucket });
-
       const feedbackWeebhookObj = {
         title: feedback.title,
         description: feedback.description,
-        type: feedback.type,
-        attachment: [{ link: uploadImageBucket as string }],
+        type: feedback.type as FeedbacksType,
+        attachment: [{ link: uploadImageBucketURL as string }],
       };
 
       const feedbackObj = {
         title: feedback.title,
         description: feedback.description,
         type: feedback.type,
-        link: uploadImageBucket as string,
+        link: uploadImageBucketURL as string,
         createdAt: firestore.FieldValue.serverTimestamp(),
       };
 
       await createFeedback(feedbackObj);
-      await createFeedbackWebHook(feedbackWeebhookObj);
+      const result = await createFeedbackWebHook(feedbackWeebhookObj);
+
+      if (result && result.status === 200) {
+        setFeedback({
+          title: "",
+          description: "",
+          type: "Sugestion",
+        });
+        setImageURI(null);
+        setUploadImageBucketURL(null);
+
+        router.push("/home");
+      }
+
+      console.log({ result });
     } catch (error) {
       console.error("Erro ao salvar feedback:", error);
     }
-  }, []);
+  };
 
   const loading = useMemo(() => {
     return createFeedbackWebHookLoading || saveImageBucketLoading
@@ -275,7 +297,7 @@ export default function Feedbacks() {
                     multiline
                   />
 
-                  {image && (
+                  {imageURI && (
                     <View
                       style={{
                         width: "100%",
@@ -285,7 +307,7 @@ export default function Feedbacks() {
                       }}
                     >
                       <Image
-                        source={{ uri: image.uri }}
+                        source={{ uri: imageURI.uri }}
                         style={{
                           width: 300,
                           height: 300,
@@ -295,18 +317,18 @@ export default function Feedbacks() {
 
                       <TouchableOpacity
                         style={{ position: "absolute", right: 0, top: 0 }}
-                        onPress={() => setImage(null)}
+                        onPress={() => setImageURI(null)}
                       >
                         <Trash size={28} color={theme.colors.red[500]} />
                       </TouchableOpacity>
                     </View>
                   )}
 
-                  {!image && (
+                  {!imageURI && (
                     <Button title="Anexar imagem" onPress={pickImage} />
                   )}
 
-                  {feedback.description && image && (
+                  {feedback.description && imageURI && (
                     <TouchableOpacity
                       style={{
                         backgroundColor: "#3b82f6",

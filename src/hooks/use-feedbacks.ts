@@ -13,10 +13,12 @@ type CreateFeedbackBody = {
   createdAt: any;
 };
 
+export type FeedbacksType = "Error" | "Sugestion" | "Improvement";
+
 type CreateFeedbackWeebHookBody = {
   title: string;
   description: string;
-  type: string;
+  type: FeedbacksType;
   attachment: {
     link: string;
   }[];
@@ -42,7 +44,7 @@ export function useFeedbacks() {
         .doc(userLoggedId)
         .collection("feedbacks")
         .add(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao criar o feedback: ", error);
     }
   }, []);
@@ -54,11 +56,10 @@ export function useFeedbacks() {
 
         const response = await axios.post(
           "https://n8n.idealab.site/webhook/controle-plus/feedback",
-          { ...data },
+          { ...data, board_id: "6GyAhPoN" },
           {
             headers: {
-              "Content-Type": "application/json",
-              "api-key": 'H)av"5oD<M)z)OZ,nT5/;z{o;c#G14V}rO6f{P4>Q1XS1I7^',
+              "api-key": "rMjkpgNsF0Ph9f0W2Gq4Lo3kJ0VJAe53YFyTq9rkm0sBlIwar8",
             },
           }
         );
@@ -69,7 +70,7 @@ export function useFeedbacks() {
           data: response.data,
           status: response.status,
         };
-      } catch (error) {
+      } catch (error: any) {
         console.error("Erro ao disparar o webhook: ", error);
       } finally {
         setCreateFeedbackWebHookLoading(false);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { Picker } from "@react-native-picker/picker";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -43,12 +43,14 @@ export default function Assets() {
     setRefreshing(false);
   };
 
-  useEffect(() => {
-    getUserAssetsByMonth({
-      selectedMonth: periodSelected,
-      year: currentYear,
-    });
-  }, [periodSelected]);
+  useFocusEffect(
+    useCallback(() => {
+      getUserAssetsByMonth({
+        selectedMonth: periodSelected,
+        year: currentYear,
+      });
+    }, [periodSelected])
+  );
 
   return (
     <Layout>
@@ -188,7 +190,7 @@ export default function Assets() {
                                 color: theme.colors.gray[900],
                               }}
                             >
-                              Ativo: {item.asset}
+                              Ativo: {item.asset.toUpperCase()}
                             </Text>
                           </View>
 

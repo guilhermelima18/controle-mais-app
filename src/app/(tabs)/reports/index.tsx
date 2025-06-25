@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   View,
@@ -6,6 +6,7 @@ import {
   FlatList,
   RefreshControl,
 } from "react-native";
+import { useFocusEffect } from "expo-router";
 import { Pie, PolarChart } from "victory-native";
 import { useFont } from "@shopify/react-native-skia";
 import { Poppins_400Regular } from "@expo-google-fonts/poppins";
@@ -65,9 +66,11 @@ export default function Reports() {
     setRefreshing(false);
   };
 
-  useEffect(() => {
-    getUserTransactions();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      getUserTransactions();
+    }, [])
+  );
 
   if (!font) {
     return (
